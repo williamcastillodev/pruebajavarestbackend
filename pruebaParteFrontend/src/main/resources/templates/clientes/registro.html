@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8" />
+<title>Registrar Clientes</title>
+<script
+	src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<link rel="stylesheet"
+	href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+<script
+	src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script
+	src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+<script type="text/javascript">
+	$(document).ready(function() {
+		limpiarcampos();
+	});
+	function crearcliente() {
+		var jsoncli = {
+			nombre : document.getElementById("nombre").value,
+			apellido : document.getElementById("apellido").value,
+			cliente : 'holacomoestas'
+		};
+
+		$.ajax({
+					method : "POST",
+					url : "http://localhost:8080/api/clientes",
+					dataType : "json",
+					contentType : 'application/json;  charset=utf-8;',
+					mimeType : 'application/json',
+					processData : false,
+					data : JSON.stringify({
+						cliente : jsoncli
+					}),
+					success : function(_res) {
+						if (_res.respuesta == 'ERROR') {
+							alert("Error registrando cliente "
+									+ (_res.mensaje ? _res.mensaje : ''));
+							return;
+						} else {
+							alert("Cliente registrado " + _res.cliente.id
+									+ " : " + _res.cliente.nombre + " "
+									+ _res.cliente.apellido);
+						}
+						limpiarcampos();
+					},
+					error : function(error) {
+						alert('Error en registro');
+					}
+				});
+
+	}
+	function limpiarcampos() {
+		document.getElementById("nombre").value = '';
+		document.getElementById("apellido").value = '';
+	}
+</script>
+</head>
+<body>
+	<div>
+		<a href="/app/clientes">Ver Clientes</a>
+	</div>
+	<h2>Crear Clientes</h2>
+	<form id="formnuevocliente" method="POST">
+		<div style="padding: 2em;" class="container">
+			<table>
+				<tbody>
+					<tr>
+						<td>Nombre</td>
+						<td><input type="text" id="nombre" /></td>
+					</tr>
+					<tr>
+						<td>Apellido</td>
+						<td><input type="text" id="apellido" /></td>
+					</tr>
+					<tr>
+						<td><input type="button"
+							onclick="javascript:limpiarcampos();" value="Limpiar"></td>
+						<td><input type="button" onclick="javascript:crearcliente();"
+							value="Crear"></td>
+					</tr>
+				</tbody>
+			</table>
+
+		</div>
+	</form>
+
+</body>
+</html>

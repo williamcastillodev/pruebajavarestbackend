@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8" />
+<title>Consultar Clientes</title>
+<script
+	src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<link rel="stylesheet"
+	href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+<script
+	src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script
+	src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+<script type="text/javascript">
+	var listadoclientes = [];
+	$(document).ready(function() {
+		consultarDatos();
+	});
+	function consultarDatos() {
+		limpiarTabla();
+		$.ajax({
+			method : "GET",
+			url : "http://localhost:8080/api/clientes",
+			dataType : "json",
+			contentType : 'application/json;  charset=utf-8;',
+			mimeType : 'application/json',
+			data : {},
+			success : function(_res) {
+				if (_res.respuesta == 'ERROR') {
+					alert("Error Consultando datos "
+							+ (_res.mensaje ? _res.mensaje : ''));
+					return;
+				} else {
+					if (!_res.clientes || _res.clientes.length == 0) {
+						alert("No se encontraron clientes");
+						return;
+					}
+					listadoclientes = _res.clientes;
+					pintarTabla();
+				}
+			},
+			error : function(error) {
+				console.log(error);
+				alert('Error Consultando Información');
+			}
+		});
+
+		function limpiarTabla() {
+			$("#datoscli").html("");
+		}
+		function pintarTabla(listacli) {
+			limpiarTabla();
+			for ( var c in listadoclientes) {
+				var tc = listadoclientes[c];
+				tc.idcb = 'cbc_' + tc.id;
+				var tr = '<tr><td> <input type="checkbox" id="' + tc.idcb
+						+ '" onclick="checkboxcambio(this);" > </td><td>'
+						+ tc.id + '</td><td>' + tc.nombre + '</td><td>'
+						+ tc.apellido + '</td><td>'
+						+ (tc.procesado ? 'Prosesado' : 'Sin procesar')
+						+ '</td></tr>';
+				$("#datoscli").append(tr);
+			}
+		}
+	}
+	function checkboxcambio(_cb) {
+		for ( var c in listadoclientes) {
+			var tc = listadoclientes[c];
+			if (_cb.id == tc.idcb) {
+				tc.seleccionado = _cb.checked == true;
+				break;
+			}
+		}
+	}
+	function procesar() {
+		var clipro = [];
+		for ( var c in listadoclientes) {
+			if (listadoclientes[c].seleccionado) {
+				clipro.push(listadoclientes[c]);
+			}
+		}
+		if (clipro.length == 0) {
+			alert("Sin clientes para procesar");
+			return;
+		}
+
+		$.ajax({
+			method : "POST",
+			url : "http://localhost:8080/api/clientes/procesar",
+			dataType : "json",
+			contentType : 'application/json;  charset=utf-8;',
+			mimeType : 'application/json',
+			processData : false,
+			data : JSON.stringify({
+				clientes : clipro
+			}),
+			success : function(_res) {
+				console.log(_res);
+				if (_res.respuesta == 'ERROR') {
+					alert("Error procesando clientes "
+							+ (_res.mensaje ? _res.mensaje : ''));
+					return;
+				} else {
+					alert("Clientes Procesados ");
+				}
+				consultarDatos();
+			},
+			error : function(error) {
+				console.log(error);
+				alert('Error procesando clientes');
+			}
+		});
+
+	}
+</script>
+</head>
+<body>
+	<div>
+		<a href="/app/registro">Nuevo Cliente</a>
+	</div>
+	<h2>Clientes</h2>
+	<div style="padding: 2em;" class="container">
+		<div>
+			<input type="button" onclick="javascript:procesar();"
+				value="Procesar">
+		</div>
+		<table id="datotabla" class="table"
+			style="max-width: 50em; border: black solid 0.1em; width: 30em;">
+			<thead>
+				<th></th>
+				<th>Id</th>
+				<th>Nombre</th>
+				<th>Apellido</th>
+				<th>Procesado</th>
+			</thead>
+			<tbody id="datoscli"></tbody>
+		</table>
+	</div>
+</body>
+</html>
